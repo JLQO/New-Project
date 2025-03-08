@@ -31,11 +31,14 @@ else [Location]),
     #"Replaced Value" = Table.ReplaceValue(#"Changed Type2","Anne Rundell","MA",Replacer.ReplaceText,{"Location Correction.2"}),
     #"Renamed Columns1" = Table.RenameColumns(#"Replaced Value",{{"Location Correction.2", "State Abbreviations"}}),
     #"Replaced Value1" = Table.ReplaceValue(#"Renamed Columns1","employees","",Replacer.ReplaceText,{"Size"}),
-    #"Split Column by Delimiter1" = Table.SplitColumn(#"Replaced Value1", "Size", Splitter.SplitTextByDelimiter("to", QuoteStyle.Csv), {"Size.1", "Size.2"}),
-    #"Renamed Columns2" = Table.RenameColumns(#"Split Column by Delimiter1",{{"Size.1", "MinCompanySize"}, {"Size.2", "MaxCompanySize"}}),
-    #"Filtered Rows" = Table.SelectRows(#"Renamed Columns2", each ([Competitors] <> "-1") and ([Industry] <> "-1")),
+    #"Filtered Rows" = Table.SelectRows(#"Replaced Value1", each ([Competitors] <> "-1") and ([Industry] <> "-1")),
     #"Split Column by Character Transition" = Table.SplitColumn(#"Filtered Rows", "Company Name", Splitter.SplitTextByCharacterTransition((c) => not List.Contains({"0".."9"}, c), {"0".."9"}), {"Company Name.1", "Company Name.2", "Company Name.3"}),
     #"Removed Columns" = Table.RemoveColumns(#"Split Column by Character Transition",{"Company Name.2", "Company Name.3"}),
-    #"Renamed Columns3" = Table.RenameColumns(#"Removed Columns",{{"Company Name.1", "Company Name"}})
+    #"Renamed Columns3" = Table.RenameColumns(#"Removed Columns",{{"Company Name.1", "Company Name"}}),
+    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns3", "Size", "Size - Copy"),
+    #"Renamed Columns2" = Table.RenameColumns(#"Duplicated Column1",{{"Size - Copy", "size1"}}),
+    #"Split Column by Delimiter1" = Table.SplitColumn(#"Renamed Columns2", "size1", Splitter.SplitTextByDelimiter("to", QuoteStyle.Csv), {"size1.1", "size1.2"}),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Split Column by Delimiter1",{{"Company Name", type text}, {"size1.1", type text}, {"size1.2", Int64.Type}}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Changed Type3",{{"size1.1", "MinCompanySize"}, {"size1.2", "MaxpanySize"}})
 in
-    #"Renamed Columns3"
+    #"Renamed Columns4"
